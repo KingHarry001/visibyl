@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 // Added an `isDesktopOnly` flag to cleanly hide the text versions from the mobile menu
 const NAV_LINKS = [
@@ -16,7 +15,6 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const router = useRouter();
-  const supabase = createClient();
   
   // UI States
   const [mounted, setMounted] = useState(false);
@@ -34,27 +32,6 @@ export default function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const firstMobileLinkRef = useRef<HTMLAnchorElement>(null);
-
-  // Initialize and check auth state
-  useEffect(() => {
-    setMounted(true);
-
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-    };
-
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
 
   // Handle Scroll styling
   useEffect(() => {
@@ -110,7 +87,6 @@ export default function Navbar() {
   }, [mobileOpen, userMenuOpen]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
     setUserMenuOpen(false);
     router.refresh();
     router.push("/");
